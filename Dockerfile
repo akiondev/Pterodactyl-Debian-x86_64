@@ -10,6 +10,7 @@ RUN --mount=type=cache,target=/var/cache/apt \
       libmaxminddb0 libmaxminddb-dev mmdb-bin \
       python3-httpx python3-backoff python3-requests-cache \
       python3-geoip2 python3-maxminddb python3-prometheus-client \
+      python3-yaml \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
