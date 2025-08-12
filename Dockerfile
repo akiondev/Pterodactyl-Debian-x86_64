@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.6
 FROM debian:bookworm-slim
 
 RUN --mount=type=cache,target=/var/cache/apt \
@@ -12,21 +13,24 @@ RUN --mount=type=cache,target=/var/cache/apt \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-ENV PIP_NO_CACHE_DIR=1
-RUN python3 -m pip install \
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+RUN python3 -m pip install --no-cache-dir \
       httpx backoff requests-cache \
       geoip2 maxminddb \
       prometheus-client \
       discord-webhook
 
-RUN useradd -m -d /home/container -s /bin/bash container
-USER container
-ENV USER=container HOME=/home/container \
-    PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
-WORKDIR /home/container
+COPY entrypoint.sh /entrypoint.sh
+RUN sed -i 's/\r$//' /entrypoint.sh && chmod +x /entrypoint.sh
 
-COPY --chown=container:container entrypoint.sh /entrypoint.sh
-RUN sed -i 's/
-$//' /entrypoint.sh && chmod +x /entrypoint.sh
+RUN useradd -m -d /home/container -s /bin/bash container \
+ && chown container:container /entrypoint.sh
+
+USER container
+ENV USER=container HOME=/home/container
+WORKDIR /home/container
 
 CMD ["/bin/bash", "/entrypoint.sh"]
